@@ -124,11 +124,14 @@ end
 function symlog_plot(x::Vector,
                         y::Vector;
                         group::Union{Nothing, Vector} = nothing,
-                        groupcolors::Union{Nothing, Vector} = nothing,
                         symlog_axes::Symbol = :both,
                         threshold::Float64 = 1e-7,
                         size_tuple::Tuple{Int64,Int64} =  (800, 500),
-                        fortyfive_line::Bool = true)
+                        fortyfive_line::Bool = true,
+                        msize = .5,
+                        markercolor::Union{Nothing, Symbol, Vector} = nothing,
+                        markershape = :+,
+                        alpha = .3)
     
     @assert length(x) == length(y) "Input vectors x and y not of same length"
     if !isnothing(group)
@@ -164,25 +167,32 @@ function symlog_plot(x::Vector,
     end
 
     if isnothing(group) || length(unique(group)) == 1
-        p = Plots.scatter(x_plot, y_plot, xticks=x_tick_input, yticks=y_tick_input, msize = .5, markershape = :+, markercolor = :blue, alpha = .3; size = size_tuple)
+        if isnothing(markercolor)
+            markercolor = :auto 
+        end
+        p = Plots.scatter(x_plot, y_plot, xticks=x_tick_input, yticks=y_tick_input, msize = msize, markershape = markershape, markercolor = markercolor, alpha = alpha; size = size_tuple)
     else
         allgroups = unique(group)
-        if isnothing(groupcolors)
+        if isnothing(markercolor)
             groupcolors = repeat([:auto], length(allgroups))
+        elseif typeof(markercolor) == Symbol 
+            @warn "Groups specified but only one markercolor provided. All groups will be colored in $(string(markercolor))"
+            groupcolors = repeat([markercolor], length(allgroups))
         else
-            @assert length(groupcolors) >= length(allgroups) "if groupcolors is specified, it must contain at least as many color-elements as groups in the data. If you only want to specify a few, fill the remainder with :auto."
+            @assert length(markercolor) >= length(allgroups) "if a vector for markercolor is specified, it must contain at least as many color-elements as groups in the data. If you only want to specify a few, fill the remainder with :auto."
+             groupcolors = markercolor
         end
         for (ind, nowgroup) = enumerate(allgroups)
             if ind == 1 
                 p = Plots.scatter(x_plot[group .== nowgroup], y_plot[group .== nowgroup], 
                                     xticks=x_tick_input, yticks=y_tick_input, 
-                                    msize = .5, markershape = :+, markercolor = groupcolors[ind], 
-                                    alpha = .3, label = string(nowgroup); size = size_tuple)
+                                    msize = msize, markershape = markershape, markercolor = groupcolors[ind], 
+                                    alpha = alpha, label = string(nowgroup); size = size_tuple)
             else
                 p = Plots.scatter!(x_plot[group .== nowgroup], y_plot[group .== nowgroup], 
                                     xticks=x_tick_input, yticks=y_tick_input, 
-                                    msize = .5, markershape = :+, markercolor = groupcolors[ind], 
-                                    alpha = .3, label = string(nowgroup); size = size_tuple)
+                                    msize = msize, markershape = markershape, markercolor = groupcolors[ind], 
+                                    alpha = alpha, label = string(nowgroup); size = size_tuple)
             end
         end
     end
