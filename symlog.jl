@@ -159,7 +159,7 @@ function symlog_plot(x::Vector,
         y_ticks = string.(y_ticks)
         y_tick_input = (y_pos, y_ticks)
 
-        y = symlog.(y; linthresh = threshold)
+        y_plot = symlog.(y; linthresh = threshold)
     else
         y_tick_input = :automatic       # for linear axes, use automatic ticking
 
