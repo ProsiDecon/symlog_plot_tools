@@ -160,7 +160,7 @@ function symlog_plot(x::Vector,
         y_plot = y
     end
 
-    if isnothing(group)
+    if isnothing(group) || length(unique(group)) == 1
         p = Plots.scatter(x_plot, y_plot, xticks=x_tick_input, yticks=y_tick_input, msize = .5, markershape = :+, markercolor = :blue, alpha = .3; size = size_tuple)
     else
         allgroups = unique(group)
@@ -184,7 +184,7 @@ end
 function symlog_plot(d_out::DataFrame,
                         x::Symbol,
                         y::Symbol;
-                        variety::Symbol = :both,
+                        variety::Symbol = :both,        ### XXX tbd replace with grouping variable
                         threshold::Float64 = 1e-7,
                         size_tuple::Tuple{Int64,Int64} =  (800, 500))
         
