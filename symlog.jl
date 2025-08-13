@@ -1,3 +1,5 @@
+using Plots 
+using DataFrames
 
 log_signed(x) = sign(x) * log10(abs(x) + eps())
 function symlog(x; linthresh=1e-7, linscale=1.0)
@@ -132,6 +134,7 @@ function symlog_plot(x::Vector,
     if !isnothing(group)
         @assert length(group) == length(x) "Vector of grouping variable not of same length as input vectors"
     end
+    @assert symlog_axes ∈ [:x; :y; :both] "symlog_axes must be :x, :y, or :both."
 
     if symlog_axes ∈ [:both, :x]
         # define the symlog ticks for, labels and coordinate positions of observations for x-axis
@@ -164,9 +167,23 @@ function symlog_plot(x::Vector,
         p = Plots.scatter(x_plot, y_plot, xticks=x_tick_input, yticks=y_tick_input, msize = .5, markershape = :+, markercolor = :blue, alpha = .3; size = size_tuple)
     else
         allgroups = unique(group)
-        p = Plots.scatter(x_plot[group .== allgroups[1]], y_plot[group .== allgroups[1]], xticks=x_tick_input, yticks=y_tick_input, msize = .5, markershape = :+, alpha = .3, label = string(allgroups[1]); size = size_tuple)
-        for nowgroup ∈ allgroups[2:end]
-            p = Plots.scatter!(x_plot[group .== nowgroup], y_plot[group .== nowgroup],  xticks=x_tick_input, yticks=y_tick_input, msize = .5, markershape = :+, alpha = .3, label = string(nowgroup); size = size_tuple)
+        if isnothing(groupcolors)
+            groupcolors = repeat([:auto], length(allgroups))
+        else
+            @assert length(groupcolors) >= length(allgroups) "if groupcolors is specified, it must contain at least as many color-elements as groups in the data. If you only want to specify a few, fill the remainder with :auto."
+        end
+        for (ind, nowgroup) = enumerate(allgroups)
+            if ind == 1 
+                p = Plots.scatter(x_plot[group .== nowgroup], y_plot[group .== nowgroup], 
+                                    xticks=x_tick_input, yticks=y_tick_input, 
+                                    msize = .5, markershape = :+, markercolor = groupcolors[ind], 
+                                    alpha = .3, label = string(nowgroup); size = size_tuple)
+            else
+                p = Plots.scatter!(x_plot[group .== nowgroup], y_plot[group .== nowgroup], 
+                                    xticks=x_tick_input, yticks=y_tick_input, 
+                                    msize = .5, markershape = :+, markercolor = groupcolors[ind], 
+                                    alpha = .3, label = string(nowgroup); size = size_tuple)
+            end
         end
     end
     
